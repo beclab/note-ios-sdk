@@ -1,0 +1,14 @@
+{
+  "version": "0.2.2",
+  "buildNumber": 1,
+  "xcode": "Xcode 16.4\nBuild version 16F6",
+  "swift": "swift-driver version: 1.120.5 Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)\nTarget: arm64-apple-macosx15.0",
+  "minimumIOSVersion": "16.0",
+  "swiftLanguageVersion": "6",
+  "linkage": "dynamic",
+  "distributionSignature": "unsigned",
+  "checksums": {
+    "olares-note-ios-sdk-0.2.2-xcframework.zip": "0e6ecd24e0fabfad6c2a95f63d1b0022a3c16dde95a7acbee601e494bd276807",
+    "olares-note-ios-sdk-0.2.2-spm.zip": "a2322621fff50c6eff43e70b54e8419e6735bd7e58084c8257edbbb60ecce589"
+  }
+}
