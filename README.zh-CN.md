@@ -17,7 +17,7 @@ Swift Package Manager 会下载二进制库并处理链接和嵌入，Swift 和 
 <details>
 <summary>离线安装</summary>
 
-需要的版本尚未发布到 SwiftPM 时，解压 `olares-note-ios-sdk-0.2.2-spm.zip`。
+需要的版本尚未发布到 SwiftPM 时，解压 `olares-note-ios-sdk-0.2.3-spm.zip`。
 在 Xcode 选择 **Add Package Dependencies → Add Local**，选中包含 `Package.swift` 的目录，
 将 `NoteSDK` 产品加入 App Target。也可直接添加 `NoteSDK.xcframework`，设为 **Embed & Sign**。
 保留完整 XCFramework，SDK 只添加一次。
@@ -181,7 +181,7 @@ Objective-C 将状态展开到 `NTRecordingStatus`：`uploadState`、`uploadedBy
 
 ## Demo
 
-`olares-note-ios-demo-0.2.2-source.zip` 中的 SwiftUI 和 Objective-C Demo
+`olares-note-ios-demo-0.2.3-source.zip` 中的 SwiftUI 和 Objective-C Demo
 包含文件选择、按连接隔离的本地记录和重启后手动续传。离线模式不需要 Note 服务或 API Key，可模拟上传与处理。
 选择文件只新增记录，在详情页点「开始上传」后才发送。
 
