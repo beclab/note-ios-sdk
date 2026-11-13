@@ -19,7 +19,7 @@ for the compiler used to build the binary. Use that Xcode version or a compatibl
 <details>
 <summary>Offline installation</summary>
 
-If the version you need is not on SwiftPM, extract `olares-note-ios-sdk-0.2.3-spm.zip`.
+If the version you need is not on SwiftPM, extract `olares-note-ios-sdk-0.2.4-spm.zip`.
 In Xcode, choose **Add Package Dependencies → Add Local**, select the directory containing
 `Package.swift` and add the `NoteSDK` product. You can also add `NoteSDK.xcframework` directly
 and select **Embed & Sign**. Keep the complete XCFramework and add the SDK only once.
@@ -190,7 +190,7 @@ Objective-C flattens these fields into `NTRecordingStatus`: `uploadState`, `uplo
 
 ## Demo
 
-The SwiftUI and Objective-C demos in `olares-note-ios-demo-0.2.3-source.zip`
+The SwiftUI and Objective-C demos in `olares-note-ios-demo-0.2.4-source.zip`
 have file selection, local history separated by connection and manual recovery after restart.
 Their offline mode simulates upload and processing without a Note service or API key.
 Selecting a file adds a record; open its details and tap **Start upload** to send it.
