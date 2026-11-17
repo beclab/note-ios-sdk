@@ -49,6 +49,7 @@ Ignoring or releasing the handle does not cancel the operation.
 | `uploadChunkWithRecordingID:offset:data:completion:` | Send one chunk at an absolute `int64_t` byte offset |
 | `getUploadWithRecordingID:completion:` | Read upload state, `uploadedBytes` and `chunkSize` |
 | `getStatusWithRecordingID:completion:` | Read upload and processing state |
+| `getStatusesWithRecordingIDs:completion:` (0.2.5+) | Query 1–50 IDs; completion returns an array with per-record errors |
 | `waitForCompletionWithRecordingID:interval:statusHandler:completion:` | Poll until a terminal status; receives each status through `statusHandler` |
 | `waitForCompletionWithRecordingID:interval:timeout:statusHandler:completion:` | Same with a local wait limit |
 
@@ -70,20 +71,44 @@ identify the source app/version and device.
 `processingErrorCode`, `processingError`, `waiting` and `isTerminal`.
 `waiting` carries a model wait's reason and timestamps; `outcome = no_speech` means no speech was detected.
 
-Request errors use domain `com.olares.note.sdk`. The numeric code is the HTTP status, or 1
-for local errors. Use these `userInfo` fields:
+Request errors use domain `com.olares.note.sdk`. The numeric `NSError.code` equals the SDK status when nonzero, or 1 when status is 0. Use these `userInfo` fields:
 
 | Field | Meaning |
 | --- | --- |
 | `code` | Business error string, such as `file_unreadable` or `idempotency_mismatch` |
-| `httpStatus`, `retryable` | `NSNumber` HTTP status (0 for local errors) and retry flag |
+| `httpStatus`, `retryable` | `NSNumber` SDK status and retry flag; usually the HTTP status, but local errors can use 0, 409, 422 or 500 |
 | `requestID` | Server request ID, when provided |
 | `NSLocalizedDescriptionKey` | Error description |
+
+See the [integration guide](README.md#sdk-error-codes) for error codes and actions.
 
 Cancellation uses `NSURLErrorDomain / NSURLErrorCancelled` and stops local work only.
 Save the file and idempotency key to resume. The SDK owns no history, queue, credential store
 or background execution time. Document-picker access must remain valid during upload;
 copy files into your app container or save bookmarks for recovery after restart.
+
+## Batch status lookup
+
+`getStatusesWithRecordingIDs:completion:` accepts 1–50 IDs and returns a cancelable NTRequest.
+**Available since SDK 0.2.5.** Requires a Note server with the batch status endpoint.
+The completion's results array contains NTRecordingStatusResult values in input order.
+Each item has either recording or error; read code and httpStatus from result.error.userInfo.
+The completion's error indicates a whole-request failure. An item 404 neither fails the request nor triggers another upload.
+Invalid response fields, counts or IDs fail with invalid_response (httpStatus 0 in userInfo), retaining requestID when available.
+
+```objective-c
+NSArray<NSString *> *recordingIDs = @[
+    @"11111111-1111-4111-8111-111111111111",
+    @"22222222-2222-4222-8222-222222222222"
+];
+[client getStatusesWithRecordingIDs:recordingIDs completion:^(NSArray<NTRecordingStatusResult *> *results, NSError *error) {
+    if (error != nil) { NSLog(@"%@", error); return; }
+    for (NTRecordingStatusResult *result in results) {
+        if (result.recording != nil) NSLog(@"%@: %@", result.recordingID, result.recording.processingState);
+        else NSLog(@"%@: %@", result.recordingID, result.error.userInfo[@"code"]);
+    }
+}];
+```
 
 ## Demo
 

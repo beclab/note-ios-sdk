@@ -48,6 +48,7 @@ NTRequest *call = [client uploadFileAtURL:fileURL fileName:nil options:options
 | `uploadChunkWithRecordingID:offset:data:completion:` | 按 `int64_t` 绝对字节偏移发送一块数据 |
 | `getUploadWithRecordingID:completion:` | 查询上传状态、`uploadedBytes` 和 `chunkSize` |
 | `getStatusWithRecordingID:completion:` | 查询上传与处理状态 |
+| `getStatusesWithRecordingIDs:completion:`（0.2.5+） | 批量查询 1–50 个 ID，返回结果数组；单条错误保存在对应结果中 |
 | `waitForCompletionWithRecordingID:interval:statusHandler:completion:` | 轮询到终态，`statusHandler` 接收每次查询结果 |
 | `waitForCompletionWithRecordingID:interval:timeout:statusHandler:completion:` | 带本地等待上限的轮询 |
 
@@ -67,19 +68,44 @@ NTRequest *call = [client uploadFileAtURL:fileURL fileName:nil options:options
 `processingErrorCode`、`processingError`、`waiting` 和 `isTerminal`。
 `waiting` 包含模型等待原因和时间，`outcome = no_speech` 表示未检测到语音。
 
-请求错误 domain 为 `com.olares.note.sdk`，数值 code 为 HTTP 状态码，本地错误为 1。
+请求错误 domain 为 `com.olares.note.sdk`。数值 `NSError.code` 等于非零的 SDK `status`；`status` 为 0 时用 1。
 业务判断读取 `userInfo`：
 
 | 字段 | 含义 |
 | --- | --- |
 | `code` | 字符串业务码，如 `file_unreadable`、`idempotency_mismatch` |
-| `httpStatus`、`retryable` | `NSNumber` 类型的 HTTP 状态码（本地错误为 0）和重试标志 |
+| `httpStatus`、`retryable` | `NSNumber` 类型的 SDK status 和重试标志；status 通常为 HTTP 状态码，本地错误也可能为 0、409、422、500 |
 | `requestID` | 服务端提供时存在的请求 ID |
 | `NSLocalizedDescriptionKey` | 错误描述 |
+
+错误码及处理方式见 [接入文档](README.zh-CN.md#sdk-错误码)。
 
 取消返回 `NSURLErrorDomain / NSURLErrorCancelled`，只停止本地操作。
 保存文件和幂等键用于续传。SDK 不管理本地记录、队列、密钥，也不申请后台执行时间。
 文件选择器授权在上传期间需保持有效；需要重启后恢复时，将文件复制到 App 容器或保存书签。
+
+## 批量查询状态
+
+`getStatusesWithRecordingIDs:completion:` 接收 1–50 个录音 ID，返回 NTRequest，可调用 cancel。
+**SDK 0.2.5 起支持。** Note 服务端也需支持批量查询接口。
+completion 的 results 为按输入顺序返回的 NTRecordingStatusResult 数组。
+每项 recording 和 error 恰好一个有值；单条错误从 result.error.userInfo 读取 code 和 httpStatus。
+completion 的 error 仅表示整个请求失败。单条 404 不会让整个请求失败，也不会触发重传。
+响应格式、结果数量或 ID 对应不符时，completion 返回 invalid_response（userInfo 中 httpStatus 为 0），并保留可用的 requestID。
+
+```objective-c
+NSArray<NSString *> *recordingIDs = @[
+    @"11111111-1111-4111-8111-111111111111",
+    @"22222222-2222-4222-8222-222222222222"
+];
+[client getStatusesWithRecordingIDs:recordingIDs completion:^(NSArray<NTRecordingStatusResult *> *results, NSError *error) {
+    if (error != nil) { NSLog(@"%@", error); return; }
+    for (NTRecordingStatusResult *result in results) {
+        if (result.recording != nil) NSLog(@"%@: %@", result.recordingID, result.recording.processingState);
+        else NSLog(@"%@: %@", result.recordingID, result.error.userInfo[@"code"]);
+    }
+}];
+```
 
 ## Demo
 
